@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تقویم ماه</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    body {
+        font-family: sans-serif;
+        background: #f4f5f7;
+        margin: 0;
+        padding: 20px;
+        color: #003b5c;
+    }
+
+    h2 {
+        text-align: center;
+        color: #003b5c;
+        font-weight: 800;
+        margin-bottom: 25px;
+    }
+
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .day {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 600;
+        position: relative;
+        cursor: pointer;
+        transition: 0.2s;
+        border: 1px solid #e1e4e7;
+    }
+
+    .day:hover {
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+    }
+
+    /* دایره قرمز پشت عدد روزهای حادثه */
+    .has-incident::before {
+        content: "";
+        width: 28px;
+        height: 28px;
+        background: #d60000;
+        border-radius: 50%;
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 0;
+    }
+
+    .has-incident span {
+        position: relative;
+        z-index: 2;
+        color: white !important;
+    }
+
+    /* مدال نمایش حادثه‌ها */
+    .modal-bg {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-box {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 320px;
+        box-shadow: 0 6px 30px rgba(0,0,0,0.2);
+    }
+
+    .close-btn {
+        display: block;
+        text-align: center;
+        background: #003b5c;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 15px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+</style>
+</head>
+
+<body>
+
+<h2 id="title">تقویم ماه</h2>
+
+<div class="calendar" id="calendar"></div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal">
+    <div class="modal-box">
+        <h3>جزئیات حادثه</h3>
+        <div id="modalBody"></div>
+        <div class="close-btn" onclick="closeModal()">بستن</div>
+    </div>
+</div>
+
+
+<script>
+// -----------------------------
+// داده نمونه حادثه‌ها (قابل تغییر)
+// -----------------------------
+const INCIDENTS = {
+    "5": ["سقوط ابزار از ارتفاع"],
+    "12": ["Near Miss – سر خوردن", "برخورد جسم سخت"],
+    "20": ["LTI – آسیب به دست"]
+};
+
+// دریافت نام ماه از URL
+const url = new URLSearchParams(window.location.search);
+const monthName = url.get("month") || "ماه انتخابی";
+
+// تعداد روزهای ماه (نمونه)
+const daysInMonth = 31;
+
+// عنوان صفحه
+document.getElementById("title").innerText = "تقویم " + monthName;
+
+// ساخت روزها
+const calendar = document.getElementById("calendar");
+
+for (let d = 1; d <= daysInMonth; d++) {
+    const div = document.createElement("div");
+    div.className = "day";
+
+    if (INCIDENTS[d]) {
+        div.classList.add("has-incident");
+    }
+
+    div.innerHTML = `<span>${d}</span>`;
+
+    div.onclick = () => openDay(d);
+
+    calendar.appendChild(div);
+}
+
+// Modal
+function openDay(day) {
+    const modal = document.getElementById("modal");
+    const body = document.getElementById("modalBody");
+
+    if (!INCIDENTS[day]) {
+        body.innerHTML = "هیچ حادثه‌ای ثبت نشده است.";
+    } else {
+        body.innerHTML = INCIDENTS[day]
+            .map(i => `<div>• ${i}</div>`)
+            .join("");
+    }
+
+    modal.style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+}
+</script>
+
+</body>
+</html>

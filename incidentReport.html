@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>فرم گزارش حادثه</title>
+
+  <!-- Bootstrap RTL -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- jQuery + Persian Datepicker -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Vazir FD font -->
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=vazir-fd:400,500,700" />
+
+  <style>
+    :root{
+      --primary-blue: #003b5c;
+      --muted: #8b9499;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:"Vazir FD", sans-serif;
+      background:#f6f7f9;
+    }
+
+    /* Header */
+    .app-header{
+      background:#fff;
+      padding:8px 16px;
+      display:flex; justify-content:space-between; align-items:center;
+      border-bottom:1px solid #eee;
+    }
+    .header-logo{
+      height:48px;
+    }
+    .app-title{
+      font-size:1.2rem; font-weight:700; color:var(--primary-blue);
+    }
+
+    /* Form Card */
+    .main-wrap{
+      display:flex; justify-content:center; padding:24px;
+    }
+    .form-card{
+      width:100%; max-width:950px;
+      background:white;
+      border-radius:12px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.06);
+      padding:22px;
+    }
+
+    /* Summary */
+    .summary-box{
+      background:#f1f1f1;
+      border-radius:10px;
+      padding:14px 18px;
+      border:1px solid #dedede;
+      margin-bottom:12px;
+    }
+    .summary-item{
+      background:white;
+      border:1px solid #eee;
+      border-radius:8px;
+      padding:8px 10px;
+      font-size:.88rem;
+      display:flex;
+      justify-content:space-between;
+      box-shadow:0 2px 6px rgba(0,0,0,0.04);
+    }
+    .summary-item .title{
+      font-weight:700; color:#003b5c;
+    }
+    .summary-item .value{
+      color:#444;
+    }
+
+    /* Modal */
+    .modal-dialog{
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0;
+      max-width:100%;
+    }
+    .modal-centre-box{
+      width:95%; height:90%;
+      background:white;
+      border-radius:12px;
+      box-shadow:0 20px 50px rgba(0,0,0,0.35);
+      position:relative; overflow:hidden;
+      display:flex; flex-direction:column;
+    }
+    .modal-watermark{
+      position:absolute;
+      left:50%; top:50%;
+      transform:translate(-50%,-50%) rotate(-10deg);
+      font-size:4rem;
+      color:rgba(0,0,0,0.06);
+      font-weight:700;
+      z-index:0;
+      pointer-events:none;
+    }
+
+    .preview-wrap{
+      display:flex; gap:20px;
+      flex:1; overflow:hidden;
+      min-height:0;
+    }
+    .preview-left{
+      width:35%; overflow:auto;
+    }
+    .preview-right{
+      flex:1; overflow:auto;
+    }
+
+    .doc-thumb{
+      width:100%; height:140px;
+      object-fit:cover;
+      border-radius:8px;
+      border:1px solid #ddd;
+      margin-bottom:8px;
+    }
+
+    .modal-footer-fixed{
+      position:absolute; bottom:0;
+      width:100%; background:white;
+      padding:10px 20px;
+      border-top:1px solid #ddd;
+      display:flex; justify-content:space-between;
+    }
+
+    #liveToast{ position:fixed; left:20px; bottom:20px; }
+  </style>
+
+</head>
+
+<body>
+
+<header class="app-header">
+  <img src="logo.png" class="header-logo">
+  <div class="app-title">فرم گزارش حادثه</div>
+  <img src="180923_orig.jpg" class="header-logo">
+</header>
+
+<main class="main-wrap">
+<div class="form-card">
+
+<form id="incidentForm">
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label>دستگاه حفاری *</label>
+      <input id="rigNumber" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+      <label>موقعیت چاه *</label>
+      <input id="location" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+      <label>مدیریت عملیات *</label>
+      <select id="operation" class="form-select" required>
+        <option value="">انتخاب کنید</option>
+        <option>مدیریت عملیات خشکی یک</option>
+        <option>مدیریت عملیات خشکی دو</option>
+        <option>مدیریت عملیات خشکی سه</option>
+        <option>مدیریت عملیات دریا</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-6">
+      <label>تاریخ وقوع حادثه *</label>
+      <input id="incidentDate" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <label>ساعت حادثه *</label>
+      <input id="incidentTime" class="form-control" required>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-6">
+      <label>نام فرد حادثه‌دیده *</label>
+      <input id="victimName" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <label>سمت فرد حادثه‌دیده *</label>
+      <input id="victimJob" class="form-control" required>
+    </div>
+  </div>
+
+  <div class="mt-2">
+    <label>نوع رویداد *</label>
+    <select id="incidentType" class="form-select">
+      <option value="">انتخاب کنید</option>
+      <option>Near Miss</option>
+      <option>Unsafe Act</option>
+      <option>Unsafe Condition</option>      
+      <option>illness</option>      
+      <option>FAC</option>
+      <option>MTC</option>
+      <option>RWDC</option>
+      <option>LTI</option>
+      <option>FAT</option>
+      <option>Equipment Damage</option>
+      <option>Enviroment Incident</option>
+      <option>other</option>
+
+    </select>
+  </div>
+
+  <div class="mt-2">
+    <label>شرح حادثه *</label>
+    <textarea id="initialReport" class="form-control" rows="4"></textarea>
+  </div>
+
+  <div class="mt-2">
+    <label>مستندات</label>
+    <input id="photo" type="file" multiple class="form-control">
+  </div>
+
+  <div class="row g-3 mt-3">
+    <div class="col-md-6">
+      <label>نام گزارش‌دهنده *</label>
+      <input id="reporterName" class="form-control">
+    </div>
+    <div class="col-md-6">
+      <label>سمت گزارش‌دهنده *</label>
+      <input id="reporterJob" class="form-control">
+    </div>
+  </div>
+
+  <button type="button" id="previewBtn" class="btn btn-primary w-100 mt-3">پیش‌نمایش</button>
+
+</form>
+
+</div>
+</main>
+
+<!-- Modal -->
+<div class="modal fade" id="previewModal">
+  <div class="modal-dialog">
+    <div class="modal-centre-box">
+
+      <div class="modal-watermark">پیش‌ نمایش گزارش حادثه</div>
+
+      <div class="p-3" style="position:relative; z-index:2; height:100%; overflow:hidden; display:flex; flex-direction:column;">
+
+        <div class="summary-box">
+
+          <div class="row w-100">
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">شماره پیگیری:</span>
+                <span class="value" id="trackingNumber"></span>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">دستگاه حفاری:</span>
+                <span class="value" id="pRigNumber"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row w-100">
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">موقعیت چاه:</span>
+                <span class="value" id="pLocation"></span>
+              </div>
+            </div>
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">مدیریت عملیات:</span>
+                <span class="value" id="pOperation"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row w-100">
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">تاریخ حادثه:</span>
+                <span class="value" id="pDate"></span>
+              </div>
+            </div>
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">ساعت حادثه:</span>
+                <span class="value" id="pTime"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row w-100">
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">نوع رویداد:</span>
+                <span class="value" id="pType"></span>
+              </div>
+            </div>
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">فرد حادثه‌دیده:</span>
+                <span class="value" id="pVictimName"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row w-100">
+            <div class="col-md-6 mb-2">
+              <div class="summary-item">
+                <span class="title">سمت حادثه‌دیده:</span>
+                <span class="value" id="pVictimJob"></span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="preview-wrap">
+
+          <div class="preview-left">
+            <h6 class="text-primary">مستندات</h6>
+            <div id="docsContainer"></div>
+          </div>
+
+          <div class="preview-right">
+            <h6 class="text-primary">شرح حادثه</h6>
+            <div id="pReport" class="report-text"></div>
+          </div>
+
+        </div>
+
+        <!-- گزارش‌دهنده زیر گزارش و تصاویر -->
+        <div class="row g-3 mt-3">
+          <div class="col-md-6">
+            <label class="fw-bold">نام گزارش‌دهنده:</label>
+            <div id="pReporterName" class="muted"></div>
+          </div>
+          <div class="col-md-6">
+            <label class="fw-bold">سمت گزارش‌دهنده:</label>
+            <div id="pReporterJob" class="muted"></div>
+          </div>
+        </div>
+
+        <div style="height:80px;"></div>
+
+      </div>
+
+      <div class="modal-footer-fixed">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">بازگشت</button>
+        <button id="submitFinal" class="btn btn-success">ثبت نهایی</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="liveToast" class="toast">
+  <div class="toast-body" id="toastBody"></div>
+</div>
+
+<script>
+$(function(){
+  $("#incidentDate").persianDatepicker({format:"YYYY/MM/DD"});
+  $("#incidentTime").persianDatepicker({format:"HH:mm", onlyTimePicker:true});
+});
+
+function showToast(msg){
+  $("#toastBody").text(msg);
+  new bootstrap.Toast(document.getElementById("liveToast")).show();
+}
+
+function generateTrackingNumber(){
+  return "INC-" + Date.now();
+}
+
+$("#previewBtn").click(function(){
+
+  const required = [
+    "#rigNumber","#location","#operation",
+    "#incidentDate","#incidentTime",
+    "#victimName","#victimJob",
+    "#incidentType","#initialReport",
+    "#reporterName","#reporterJob"
+  ];
+
+  for(const r of required){
+    if(!$(r).val().trim()){
+      showToast("لطفاً تمامی فیلدهای ضروری را تکمیل کنید.");
+      return;
+    }
+  }
+
+  $("#trackingNumber").text(generateTrackingNumber());
+
+  $("#pRigNumber").text($("#rigNumber").val());
+  $("#pLocation").text($("#location").val());
+  $("#pOperation").text($("#operation").val());
+  $("#pDate").text($("#incidentDate").val());
+  $("#pTime").text($("#incidentTime").val());
+  $("#pType").text($("#incidentType").val());
+  $("#pVictimName").text($("#victimName").val());
+  $("#pVictimJob").text($("#victimJob").val());
+  $("#pReport").text($("#initialReport").val());
+
+  $("#pReporterName").text($("#reporterName").val());
+  $("#pReporterJob").text($("#reporterJob").val());
+
+  const docs = $("#docsContainer");
+  docs.empty();
+  const files = $("#photo")[0].files;
+
+  for(let f of files){
+    const r = new FileReader();
+    r.onload = e => docs.append(`<img class="doc-thumb" src="${e.target.result}">`);
+    r.readAsDataURL(f);
+  }
+
+  new bootstrap.Modal(document.getElementById("previewModal")).show();
+});
+
+$("#submitFinal").click(function(){
+  showToast("گزارش با موفقیت ثبت شد.");
+  bootstrap.Modal.getInstance(document.getElementById("previewModal")).hide();
+});
+</script>
+
+</body>
+</html>

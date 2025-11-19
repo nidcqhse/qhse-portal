@@ -1,0 +1,298 @@
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD7HzEyVAnHpcODMr3IfydhbhB1azw1zDM",
+  authDomain: "qhse-mannan.firebaseapp.com",
+  projectId: "qhse-mannan",
+  storageBucket: "qhse-mannan.firebasestorage.app",
+  messagingSenderId: "690361449144",
+  appId: "1:690361449144:web:14e3e906def1c4794a124d"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// محافظت از داشبورد
+auth.onAuthStateChanged(async user => {
+  if(!user){
+    window.location.href = "Login_signup.html";
+    return;
+  }
+
+  const doc = await db.collection('users').doc(user.uid).get();
+  if (!doc.exists || doc.data().approved === false){
+    await auth.signOut();
+    alert("حساب شما تایید نشده است.");
+    window.location.href = "Login_signup.html";
+  }
+});
+
+function logout(){
+  auth.signOut().then(()=>{
+    window.location.href = "Login_signup.html";
+  });
+}
+</script>
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>سامانه گزارش حوادث (نسخه بهبود طراحی)</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=vazir-fd:400,500,700" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
+
+  <style>
+    :root{
+      --primary-blue:#003b5c;
+      --card-glass:rgba(255,255,255,0.65);
+      --blur-bg:blur(14px);
+    }
+
+    body{background:#eef2f5; font-family:"Vazir FD",sans-serif;}
+
+    /* Header */
+    .dashboard-header{
+      background:var(--card-glass);
+      backdrop-filter:var(--blur-bg);
+      border-bottom:1px solid rgba(255,255,255,0.4);
+      padding:14px 20px;
+      border-radius:0 0 18px 18px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    .header-title{font-size:2rem; font-weight:800; color:var(--primary-blue);}    
+
+    /* Cards */
+    .stat-card{
+      cursor:pointer;
+      transition:transform .25s ease, box-shadow .25s ease;
+      background:var(--card-glass);
+      backdrop-filter:var(--blur-bg);
+      border-radius:16px;
+      padding:18px;
+      text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,0.06);
+    }
+    .stat-card:hover{transform:scale(1.06); box-shadow:0 6px 16px rgba(0,0,0,0.20);}     
+    .stat-number{font-size:1.1rem; font-weight:700; color:var(--primary-blue);}
+
+    /* Panels */
+    .panel-box{
+      min-height:350px;
+      background:var(--card-glass);
+      backdrop-filter:var(--blur-bg);
+      border-radius:18px;
+      padding:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.06);
+    }
+
+    /* Heatmap months */
+    .month-box{
+      border-radius:8px;
+      padding:4px;
+      cursor:pointer;
+      transition:0.2s;
+      text-align:center;
+      font-weight:600;
+      aspect-ratio:2/1;
+      width:100%;
+      height:40px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+    }
+    .month-box:hover{transform:translateY(-6px);}    
+
+    .heat-cell{
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .heat-cell:hover{
+      transform:translateY(-6px) scale(1.05);
+      box-shadow:0 10px 20px rgba(0,0,0,0.15);
+    }
+
+    .clickable-event{cursor:pointer; transition:transform .25s ease, box-shadow .25s ease;}
+    .clickable-event:hover{transform:scale(1.08); box-shadow:0 6px 16px rgba(0,0,0,0.20);} 
+    .clickable-heat{cursor:pointer; transition:transform .25s ease, box-shadow .25s ease;}
+    .clickable-heat:hover{transform:scale(1.1); box-shadow:0 6px 16px rgba(0,0,0,0.25);} 
+
+    /* Ensure the last-event and description sit with equal height */
+    .event-row{display:flex; gap:10px; align-items:stretch;}
+    .last-event-card{min-height:150px; width:120px; padding:8px; background:#ffffff; border-radius:8px; display:flex; flex-direction:column; justify-content:flex-start; align-items:center; gap:4px; font-weight:700; color:#003b5c;}
+    .event-desc{min-height:150px; padding:10px; background:#ffffff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); flex:1;}
+  </style>
+</head>
+<body>
+
+<header class="dashboard-header d-flex justify-content-between align-items-center">
+  <div class="d-flex align-items-center gap-2"><img src="assets/logo.png" style="height:48px"></div>
+  <div class="header-title">سامانه گزارش حوادث</div>
+  <div class="d-flex align-items-center gap-3">
+    <a href="#" class="btn btn-primary">ثبت حادثه جدید</a>
+    <button class="btn btn-danger">خروج</button>
+  </div>
+</header>
+
+<div class="container-main container mt-4">
+
+  <div class="row g-3">
+    <div class="col-md-3"><div class="stat-card clickable-event" onclick="alert('جزئیات کارت نمایش داده شود')"><div class="stat-number">0</div><div>کل حوادث</div></div></div>
+    <div class="col-md-3"><div class="stat-card clickable-event" onclick="alert('جزئیات کارت نمایش داده شود')"><div class="stat-number">0</div><div>Illness</div></div></div>
+    <div class="col-md-3"><div class="stat-card clickable-event" onclick="alert('جزئیات کارت نمایش داده شود')"><div class="stat-number">0</div><div>Near Miss</div></div></div>
+    <div class="col-md-3"><div class="stat-card clickable-event" onclick="alert('جزئیات کارت نمایش داده شود')"><div class="stat-number">0</div><div>سایر حوادث</div></div></div>
+  </div>
+
+  <div class="row g-2 mt-1">
+    <div class="col-lg-6"><div class="panel-box"><h6 class="text-primary mb-3">نمودار توزیع</h6><div style="display:flex; align-items:center; justify-content:center;"><canvas id="pieChart" style="cursor:pointer; width:200px !important; height:200px !important; border-radius:50%;"></canvas></div></div></div>
+    <div class="col-lg-6">
+  <div class="panel-box">
+    <h6 class="text-primary mb-3">آمار ماهانه</h6>
+    <div class="season-grid"></div>
+
+    <!-- کنار هم: کارت تاریخ و شرح -->
+    <div class="event-row mt-3">
+
+      <!-- باکس تاریخ آخرین حادثه -->
+      <div onclick="alert('جزئیات آخرین حادثه نمایش داده شود')" class="last-event-card clickable-event">
+        <div style="width:100%; background:#003b5c; color:#ffffff; font-size:0.8rem; padding:4px 0; text-align:center; border-radius:6px;">آخرین حادثه</div>
+        <div style="font-size:0.9rem;">چهارشنبه</div>
+        <div style="font-size:1.6rem; line-height:1;">۱۲</div>
+        <div style="font-size:0.95rem;">شهریور</div>
+        <div style="font-size:0.9rem; opacity:0.9;">۱۴۰۴</div>
+      </div>
+
+      <!-- شرح حادثه -->
+      <div class="event-desc" onclick="alert('نمایش شرح کامل آخرین حادثه')">
+        <div style="font-size:0.9rem; font-weight:700; color:#003b5c; text-align:right; line-height:1.2;">
+          MTC<br>دستگاه حفاری ۲۸ فتح<br>چاه ۳ اهواز
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+  </div>
+
+</div>
+
+<script>
+// --- داده‌های دستی برای تست ---
+const eventsList = [
+  {month:'فروردین', count:4},
+  {month:'اردیبهشت', count:2},
+  {month:'خرداد', count:7},
+  {month:'تیر', count:3},
+  {month:'مرداد', count:1},
+  {month:'شهریور', count:5},
+  {month:'مهر', count:0},
+  {month:'آبان', count:6},
+  {month:'آذر', count:2},
+  {month:'دی', count:3},
+  {month:'بهمن', count:4},
+  {month:'اسفند', count:1}
+];
+
+function initDemo(){
+  // نمودار نمونه
+  const pieEl = document.getElementById('pieChart');
+  if(pieEl && pieEl.getContext){
+    const pieCtx = pieEl.getContext('2d');
+    new Chart(pieCtx, {
+      type:'pie',
+      data:{
+        labels:['Near Miss','FAC','MTC','LTI','FAT'],
+        datasets:[{
+          data:[5,3,2,1,1],
+          hoverOffset: 40,
+          borderWidth: 2,
+          borderColor: '#ffffff',
+          backgroundColor:[
+            '#ff0000',  /* قرمز */
+            '#ffd500',  /* زرد */
+            '#0077ff',  /* آبی */
+            '#00c853',  /* سبز */
+            '#9c27b0'   /* بنفش */
+          ]
+        }]
+      },
+      options:{
+        responsive:true,
+        onClick:(evt, elements)=>{
+          if(elements.length > 0){
+            const index = elements[0].index;
+            const label = ['Near Miss','FAC','MTC','LTI','FAT'][index];
+            alert('جزئیات بخش '+ label +' نمایش داده شود');
+          }
+        },
+        plugins:{ legend:{ display:true, position:'right' } },
+        animation:false,
+        hover:{ mode:'nearest', intersect:true }
+      }
+    });
+  }
+
+  // نقشه حرارتی مینیمال مشابه تقویم
+  const heatContainer = document.querySelector('.season-grid');
+  if(!heatContainer) return;
+  heatContainer.innerHTML = '';
+
+  const heatGrid = document.createElement('div');
+  heatGrid.style.display = 'grid';
+  heatGrid.style.gridTemplateColumns = 'repeat(3, 2fr)';
+  heatGrid.style.gap = '6px';
+  heatGrid.style.padding = '8px';
+
+  function colorCell(v){
+    if(v===0) return '#f0f0f0';
+    if(v<3) return '#f9d9a6';
+    if(v<5) return '#f6b26b';
+    return '#e06666';
+  }
+
+  // تولید 12 خانه مثل یک تقویم کوچک
+  for(let i=0;i<12;i++){
+    const item = eventsList[i] || {month:'-', count:0};
+    const cell = document.createElement('div');
+    cell.style.background = colorCell(item.count);
+    cell.style.borderRadius = '8px';
+    cell.style.padding = '4px 6px';
+    cell.style.textAlign = 'center';
+    cell.style.fontSize = '0.95rem';
+    cell.style.fontWeight = '700';
+    cell.classList.add('heat-cell');
+    cell.classList.add('clickable-heat');
+    cell.style.aspectRatio = '2 / 1';
+    cell.style.minHeight = '40px';
+    cell.style.display = 'flex';
+    cell.style.flexDirection = 'column';
+    cell.style.justifyContent = 'center';
+    cell.style.alignItems = 'center';
+    cell.innerHTML = `<div>${item.month}</div><div style="font-weight:800; margin-top:6px;">${item.count}</div>`;
+    cell.onclick=function(){ alert('جزئیات ماه '+ item.month +' نمایش داده شود'); };
+    heatGrid.appendChild(cell);
+  }
+
+  heatContainer.appendChild(heatGrid);
+}
+
+// اجرا بعد از بارگذاری DOM
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', initDemo);
+} else {
+  initDemo();
+}
+</script>
+</body>
+</html>
