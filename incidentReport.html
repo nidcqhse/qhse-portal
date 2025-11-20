@@ -15,255 +15,142 @@
   <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 
-  <!-- Supabase -->
+  <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Vazir FD font -->
   <link rel="stylesheet" href="https://fonts.bunny.net/css?family=vazir-fd:400,500,700" />
 
   <style>
-    :root{
-      --primary-blue: #003b5c;
-      --muted: #8b9499;
-    }
-    html,body{
-      height:100%;
-      margin:0;
-      font-family:"Vazir FD", sans-serif;
-      background:#f6f7f9;
-    }
-
-    /* Header */
-    .app-header{
-      background:#fff;
-      padding:8px 16px;
-      display:flex; justify-content:space-between; align-items:center;
-      border-bottom:1px solid #eee;
-    }
-    .header-logo{
-      height:48px;
-    }
-    .app-title{
-      font-size:1.2rem; font-weight:700; color:var(--primary-blue);
-    }
-
-    /* Form Card */
-    .main-wrap{
-      display:flex; justify-content:center; padding:24px;
-    }
-    .form-card{
-      width:100%; max-width:950px;
-      background:white;
-      border-radius:12px;
-      box-shadow:0 8px 24px rgba(0,0,0,0.06);
-      padding:22px;
-    }
-
-    /* Summary */
-    .summary-box{
-      background:#f1f1f1;
-      border-radius:10px;
-      padding:14px 18px;
-      border:1px solid #dedede;
-      margin-bottom:12px;
-    }
-    .summary-item{
-      background:white;
-      border:1px solid #eee;
-      border-radius:8px;
-      padding:8px 10px;
-      font-size:.88rem;
-      display:flex;
-      justify-content:space-between;
-      box-shadow:0 2px 6px rgba(0,0,0,0.04);
-    }
-    .summary-item .title{
-      font-weight:700; color:#003b5c;
-    }
-    .summary-item .value{
-      color:#444;
-    }
-
-    /* Modal */
-    .modal-dialog{
-      height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin:0;
-      max-width:100%;
-    }
-    .modal-centre-box{
-      width:95%; height:90%;
-      background:white;
-      border-radius:12px;
-      box-shadow:0 20px 50px rgba(0,0,0,0.35);
-      position:relative; overflow:hidden;
-      display:flex; flex-direction:column;
-    }
-    .modal-watermark{
-      position:absolute;
-      left:50%; top:50%;
-      transform:translate(-50%,-50%) rotate(-10deg);
-      font-size:4rem;
-      color:rgba(0,0,0,0.06);
-      font-weight:700;
-      z-index:0;
-      pointer-events:none;
-    }
-
-    .preview-wrap{
-      display:flex; gap:20px;
-      flex:1; overflow:hidden;
-      min-height:0;
-    }
-    .preview-left{
-      width:35%; overflow:auto;
-    }
-    .preview-right{
-      flex:1; overflow:auto;
-    }
-
-    .doc-thumb{
-      width:100%; height:140px;
-      object-fit:cover;
-      border-radius:8px;
-      border:1px solid #ddd;
-      margin-bottom:8px;
-    }
-
-    .modal-footer-fixed{
-      position:absolute; bottom:0;
-      width:100%; background:white;
-      padding:10px 20px;
-      border-top:1px solid #ddd;
-      display:flex; justify-content:space-between;
-    }
-
+    :root{ --primary-blue: #003b5c; --muted: #8b9499; }
+    html,body{ height:100%; margin:0; font-family:"Vazir FD", sans-serif; background:#f6f7f9; }
+    .app-header{ background:#fff; padding:8px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; }
+    .header-logo{ height:48px; }
+    .app-title{ font-size:1.2rem; font-weight:700; color:var(--primary-blue); }
+    .main-wrap{ display:flex; justify-content:center; padding:24px; }
+    .form-card{ width:100%; max-width:950px; background:white; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.06); padding:22px; }
+    .summary-box{ background:#f1f1f1; border-radius:10px; padding:14px 18px; border:1px solid #dedede; margin-bottom:12px; }
+    .summary-item{ background:white; border:1px solid #eee; border-radius:8px; padding:8px 10px; font-size:.88rem; display:flex; justify-content:space-between; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .summary-item .title{ font-weight:700; color:#003b5c; }
+    .doc-thumb{ width:100%; height:140px; object-fit:cover; border-radius:8px; border:1px solid #ddd; margin-bottom:8px; }
+    .modal-dialog{ height:100vh; display:flex; align-items:center; justify-content:center; margin:0; max-width:100%; }
+    .modal-centre-box{ width:95%; height:90%; background:white; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.35); position:relative; overflow:hidden; display:flex; flex-direction:column; }
+    .modal-watermark{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(-10deg); font-size:4rem; color:rgba(0,0,0,0.06); font-weight:700; z-index:0; pointer-events:none; }
+    .preview-wrap{ display:flex; gap:20px; flex:1; overflow:hidden; min-height:0; }
+    .preview-left{ width:35%; overflow:auto; }
+    .preview-right{ flex:1; overflow:auto; }
+    .modal-footer-fixed{ position:absolute; bottom:0; width:100%; background:white; padding:10px 20px; border-top:1px solid #ddd; display:flex; justify-content:space-between; }
     #liveToast{ position:fixed; left:20px; bottom:20px; }
   </style>
-
 </head>
 
 <body>
-<a href="https://nidcqhse.github.io/qhse-portal/dashboard.html" 
-   class="btn btn-secondary" 
-   style="margin: 20px; font-size: 16px;">
-    ← بازگشت به داشبورد
-</a>
+
 <header class="app-header">
-  <img src="asset/logo.png" class="header-logo">
+  <img src="asset/logo.png" class="header-logo" alt="logo">
   <div class="app-title">فرم گزارش حادثه</div>
-  <img src="asset/180923_orig.jpg" class="header-logo">
+  <a href="https://nidcqhse.github.io/qhse-portal/dashboard.html" class="btn btn-secondary" style="font-size:14px; padding:6px 12px;">بازگشت ←</a>
 </header>
 
 <main class="main-wrap">
-<div class="form-card">
+  <div class="form-card">
+    <form id="incidentForm">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label>دستگاه حفاری *</label>
+          <input id="rigNumber" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label>موقعیت چاه *</label>
+          <input id="location" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label>مدیریت عملیات *</label>
+          <select id="operation" class="form-select" required>
+            <option value="">انتخاب کنید</option>
+            <option>مدیریت عملیات خشکی یک</option>
+            <option>مدیریت عملیات خشکی دو</option>
+            <option>مدیریت عملیات خشکی سه</option>
+            <option>مدیریت عملیات دریا</option>
+          </select>
+        </div>
+      </div>
 
-<form id="incidentForm">
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <label>تاریخ وقوع حادثه *</label>
+          <input id="incidentDate" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label>ساعت حادثه *</label>
+          <input id="incidentTime" class="form-control" required>
+        </div>
+      </div>
 
-  <div class="row g-3">
-    <div class="col-md-4">
-      <label>دستگاه حفاری *</label>
-      <input id="rigNumber" class="form-control" required>
-    </div>
-    <div class="col-md-4">
-      <label>موقعیت چاه *</label>
-      <input id="location" class="form-control" required>
-    </div>
-    <div class="col-md-4">
-      <label>مدیریت عملیات *</label>
-      <select id="operation" class="form-select" required>
-        <option value="">انتخاب کنید</option>
-        <option>مدیریت عملیات خشکی یک</option>
-        <option>مدیریت عملیات خشکی دو</option>
-        <option>مدیریت عملیات خشکی سه</option>
-        <option>مدیریت عملیات دریا</option>
-      </select>
-    </div>
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <label>نام فرد حادثه‌دیده *</label>
+          <input id="victimName" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label>سمت فرد حادثه‌دیده *</label>
+          <input id="victimJob" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="mt-2">
+        <label>نوع رویداد *</label>
+        <select id="incidentType" class="form-select">
+          <option value="">انتخاب کنید</option>
+          <option>Near Miss</option>
+          <option>Unsafe Act</option>
+          <option>Unsafe Condition</option>
+          <option>illness</option>
+          <option>FAC</option>
+          <option>MTC</option>
+          <option>RWDC</option>
+          <option>LTI</option>
+          <option>FAT</option>
+          <option>Equipment Damage</option>
+          <option>Enviroment Incident</option>
+          <option>other</option>
+        </select>
+      </div>
+
+      <div class="mt-2">
+        <label>شرح حادثه *</label>
+        <textarea id="initialReport" class="form-control" rows="4"></textarea>
+      </div>
+
+      <div class="mt-2">
+        <label>مستندات</label>
+        <input id="photo" type="file" multiple class="form-control">
+      </div>
+
+      <div class="row g-3 mt-3">
+        <div class="col-md-6">
+          <label>نام گزارش‌دهنده *</label>
+          <input id="reporterName" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label>سمت گزارش‌دهنده *</label>
+          <input id="reporterJob" class="form-control">
+        </div>
+      </div>
+
+      <button type="button" id="previewBtn" class="btn btn-primary w-100 mt-3">پیش‌نمایش</button>
+    </form>
   </div>
-
-  <div class="row g-3 mt-2">
-    <div class="col-md-6">
-      <label>تاریخ وقوع حادثه *</label>
-      <input id="incidentDate" class="form-control" required>
-    </div>
-    <div class="col-md-6">
-      <label>ساعت حادثه *</label>
-      <input id="incidentTime" class="form-control" required>
-    </div>
-  </div>
-
-  <div class="row g-3 mt-2">
-    <div class="col-md-6">
-      <label>نام فرد حادثه‌دیده *</label>
-      <input id="victimName" class="form-control" required>
-    </div>
-    <div class="col-md-6">
-      <label>سمت فرد حادثه‌دیده *</label>
-      <input id="victimJob" class="form-control" required>
-    </div>
-  </div>
-
-  <div class="mt-2">
-    <label>نوع رویداد *</label>
-    <select id="incidentType" class="form-select">
-      <option value="">انتخاب کنید</option>
-      <option>Near Miss</option>
-      <option>Unsafe Act</option>
-      <option>Unsafe Condition</option>      
-      <option>illness</option>      
-      <option>FAC</option>
-      <option>MTC</option>
-      <option>RWDC</option>
-      <option>LTI</option>
-      <option>FAT</option>
-      <option>Equipment Damage</option>
-      <option>Enviroment Incident</option>
-      <option>other</option>
-
-    </select>
-  </div>
-
-  <div class="mt-2">
-    <label>شرح حادثه *</label>
-    <textarea id="initialReport" class="form-control" rows="4"></textarea>
-  </div>
-
-  <div class="mt-2">
-    <label>مستندات</label>
-    <input id="photo" type="file" multiple class="form-control">
-  </div>
-
-  <div class="row g-3 mt-3">
-    <div class="col-md-6">
-      <label>نام گزارش‌دهنده *</label>
-      <input id="reporterName" class="form-control">
-    </div>
-    <div class="col-md-6">
-      <label>سمت گزارش‌دهنده *</label>
-      <input id="reporterJob" class="form-control">
-    </div>
-  </div>
-
-  <button type="button" id="previewBtn" class="btn btn-primary w-100 mt-3">پیش‌نمایش</button>
-
-</form>
-
-</div>
 </main>
 
 <!-- Modal -->
 <div class="modal fade" id="previewModal">
   <div class="modal-dialog">
     <div class="modal-centre-box">
-
       <div class="modal-watermark">پیش‌ نمایش گزارش حادثه</div>
 
       <div class="p-3" style="position:relative; z-index:2; height:100%; overflow:hidden; display:flex; flex-direction:column;">
-
         <div class="summary-box">
-
           <div class="row w-100">
             <div class="col-md-6 mb-2">
               <div class="summary-item">
@@ -271,7 +158,6 @@
                 <span class="value" id="trackingNumber"></span>
               </div>
             </div>
-
             <div class="col-md-6 mb-2">
               <div class="summary-item">
                 <span class="title">دستگاه حفاری:</span>
@@ -333,11 +219,9 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <div class="preview-wrap">
-
           <div class="preview-left">
             <h6 class="text-primary">مستندات</h6>
             <div id="docsContainer"></div>
@@ -347,10 +231,8 @@
             <h6 class="text-primary">شرح حادثه</h6>
             <div id="pReport" class="report-text"></div>
           </div>
-
         </div>
 
-        <!-- گزارش‌دهنده زیر گزارش و تصاویر -->
         <div class="row g-3 mt-3">
           <div class="col-md-6">
             <label class="fw-bold">نام گزارش‌دهنده:</label>
@@ -363,14 +245,12 @@
         </div>
 
         <div style="height:80px;"></div>
-
       </div>
 
       <div class="modal-footer-fixed">
         <button class="btn btn-secondary" data-bs-dismiss="modal">بازگشت</button>
         <button id="submitFinal" class="btn btn-success">ثبت نهایی</button>
       </div>
-
     </div>
   </div>
 </div>
@@ -440,13 +320,101 @@ $("#previewBtn").click(function(){
   new bootstrap.Modal(document.getElementById("previewModal")).show();
 });
 
-$("#submitFinal").click(function(){
-  showToast("گزارش با موفقیت ثبت شد.");
-  bootstrap.Modal.getInstance(document.getElementById("previewModal")).hide();
+/* ------------------ SUPABASE INTEGRATION ------------------ */
+
+// Supabase config (from user)
+const SUPABASE_URL = "https://krquvwdqmqtcnndishin.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtycXV2d2RxbXF0Y25uZGlzaGluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2MTEwNTAsImV4cCI6MjA3OTE4NzA1MH0.h3FmzEXx7jS39aMPMUV80vVTaYto0tRzEcjgVtJGOD4";
+const supabase = supabaseJs.createClient ? supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY) : supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// helper: upload files to bucket "incident-docs"
+async function uploadFiles(incidentId){
+  const files = document.getElementById("photo").files;
+  if(!files || files.length === 0) return [];
+
+  const uploadedUrls = [];
+
+  for (let f of files){
+    const path = `${incidentId}/${Date.now()}_${encodeURIComponent(f.name)}`;
+    // upload
+    const { data: uploadData, error: uploadErr } = await supabase.storage.from("incident-docs").upload(path, f);
+    if (uploadErr) {
+      console.error("upload error", uploadErr);
+      showToast("خطا در آپلود فایل: " + (uploadErr.message || uploadErr));
+      continue;
+    }
+
+    // get public url
+    const { data: urlData } = supabase.storage.from("incident-docs").getPublicUrl(path);
+    const publicUrl = urlData?.publicUrl || null;
+    if (publicUrl) {
+      // store in incident_files
+      const { error: insErr } = await supabase.from("incident_files").insert({
+        incident_id: incidentId,
+        file_url: publicUrl
+      });
+      if (insErr) console.error("insert file record error", insErr);
+      uploadedUrls.push(publicUrl);
+    }
+  }
+
+  return uploadedUrls;
+}
+
+document.getElementById("submitFinal").addEventListener("click", async function(){
+  try {
+    // validation (repeat minimal)
+    const requiredIds = ["rigNumber","location","operation","incidentDate","incidentTime","victimName","victimJob","incidentType","initialReport","reporterName","reporterJob"];
+    for(const id of requiredIds){
+      if(!document.getElementById(id).value.trim()){
+        showToast("لطفاً تمامی فیلدهای ضروری را تکمیل کنید.");
+        return;
+      }
+    }
+
+    const tracking_number = generateTrackingNumber();
+
+    const payload = {
+      tracking_number,
+      rig_number: document.getElementById("rigNumber").value.trim(),
+      location: document.getElementById("location").value.trim(),
+      operation: document.getElementById("operation").value.trim(),
+      incident_date: document.getElementById("incidentDate").value.trim(),
+      incident_time: document.getElementById("incidentTime").value.trim(),
+      victim_name: document.getElementById("victimName").value.trim(),
+      victim_job: document.getElementById("victimJob").value.trim(),
+      incident_type: document.getElementById("incidentType").value.trim(),
+      initial_report: document.getElementById("initialReport").value.trim(),
+      reporter_name: document.getElementById("reporterName").value.trim(),
+      reporter_job: document.getElementById("reporterJob").value.trim()
+    };
+
+    // insert incident
+    const { data, error } = await supabase.from("incidents").insert(payload).select().single();
+    if (error) {
+      console.error("insert incident error", error);
+      showToast("خطا در ثبت گزارش: " + (error.message || error));
+      return;
+    }
+
+    const incidentId = data.id;
+    // upload files
+    await uploadFiles(incidentId);
+
+    showToast("گزارش با موفقیت ثبت شد.");
+    bootstrap.Modal.getInstance(document.getElementById("previewModal")).hide();
+
+    // redirect to dashboard after short delay
+    setTimeout(()=> {
+      window.location.href = "https://nidcqhse.github.io/qhse-portal/dashboard.html";
+    },1500);
+
+  } catch (err) {
+    console.error(err);
+    showToast("خطایی رخ داد. دوباره تلاش کنید.");
+  }
 });
 </script>
 
 </body>
 </html>
-
-
